@@ -1,0 +1,14 @@
+[Unit]
+Description=IP blocklist service
+Requisite=iptables.service
+After=iptables.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/blocklist.sh start
+ExecStop=/usr/local/bin/blocklist.sh stop
+ExecReload=/usr/local/bin/blocklist.sh restart
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

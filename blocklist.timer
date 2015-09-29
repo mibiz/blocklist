@@ -1,0 +1,9 @@
+[Unit]
+Description=Refresh blocklists routinely
+
+[Timer]
+OnUnitActiveSec=2d
+
+[Install]
+Wanted-By=multi-user.target
+
