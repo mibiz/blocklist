@@ -2,13 +2,13 @@
 
 # Associative array of list name and its URL alias
 typeset -A BLOCKLISTS
-BLOCKLISTS=(ads dgxtneitpuvgqqcpfulq spyware llvtlsjyoyiczbkjsxpf)
+BLOCKLISTS=(ads dgxtneitpuvgqqcpfulq spyware llvtlsjyoyiczbkjsxpf level1 ydxerpxkpcfqjaybcssw)
 
 # Download location
 LISTDIR=/var/cache/blocklists
 
 #Only re-download if the cached version is older than this many days
-REFRESH_DAYS=2
+REFRESH_DAYS=1
 
 [ ! -d $LISTDIR ] && mkdir $LISTDIR
 
@@ -17,7 +17,7 @@ refresh_lists(){
         # Download file only if cached version doesn't exist, or cached version is older than 1 day
          if [[ ! -f $LISTDIR/$iter ]] || (( $(date +%s) - $(stat --format=%Y $LISTDIR/$iter) > $REFRESH_DAYS*24*60*60 )); then    
             echo "Re-downloading $iter"
-            wget -O - "http://list.iblocklist.com/?list=${BLOCKLISTS[$iter]}&fileformat=p2p&archiveformat=gz" | zcat > $LISTDIR/$iter   
+            wget -q -O - "http://list.iblocklist.com/?list=${BLOCKLISTS[$iter]}&fileformat=p2p&archiveformat=gz" | zcat > $LISTDIR/$iter   
         else
             echo "Using cached $iter"
         fi
@@ -26,17 +26,21 @@ refresh_lists(){
 
 update_firewall(){
     for iter in ${(k)BLOCKLISTS}; do    
+        echo "Creating IP set for $iter"
         ipset create -exist $iter hash:net maxelem 4294967295
         ipset flush $iter
-        cut -d: -s -f2 /$LISTDIR/$iter | xargs -I {} ipset add $iter {}
+        awk -F: 'NF > 1 {print $NF}' /$LISTDIR/$iter | xargs -I {} ipset add $iter {}
+        echo "Creating firewall rule for $iter"
         iptables -I INPUT -m set --match-set $iter src -j DROP
     done
 }
 
 flush_firewall(){
     for iter in ${(k)BLOCKLISTS}; do
+        echo "Deleting firewall rule for $iter"
         iptables -D INPUT -m set --match-set $iter src -j DROP || true
-	ipset flush $iter
+	    echo "Destroying $iter IP set"
+        ipset flush $iter
         ipset destroy $iter || true
     done    
 }
