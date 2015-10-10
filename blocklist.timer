@@ -5,5 +5,5 @@ Description=Refresh blocklists routinely
 OnUnitActiveSec=2d
 
 [Install]
-Wanted-By=multi-user.target
+WantedBy=multi-user.target
 
