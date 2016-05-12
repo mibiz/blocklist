@@ -14,7 +14,7 @@ REFRESH_DAYS=1
 
 refresh_lists(){
     for iter in ${(k)BLOCKLISTS}; do
-        # Download file only if cached version doesn't exist, or cached version is older than 1 day
+        # Download file only if cached version doesn't exist, or cached version is older than REFRESH_DAYS days
          if [[ ! -f $LISTDIR/$iter ]] || (( $(date +%s) - $(stat --format=%Y $LISTDIR/$iter) > $REFRESH_DAYS*24*60*60 )); then    
             echo "Re-downloading $iter"
             wget -q -O - "http://list.iblocklist.com/?list=${BLOCKLISTS[$iter]}&fileformat=p2p&archiveformat=gz" | zcat > $LISTDIR/$iter   
